@@ -1,0 +1,24 @@
+services:
+  bridge:
+    image: eclipse/zenoh-bridge-ros2dds:1.10.2
+    # The bridge has no signal handler and would ignore Ctrl-C as PID 1
+    init: true
+    network_mode: host
+    environment:
+      ROS_DISTRO: kilted
+
+  service:
+    image: ghcr.io/astral-sh/uv:python3.14-trixie-slim
+    network_mode: host
+    volumes:
+      - ./service:/service:ro
+    command: uv run --script /service/main.py a b
+
+  ros_service:
+    build: ros_service
+    network_mode: host
+    environment:
+      # Fast DDS shared memory reaches neither other containers nor the bridge's CycloneDDS
+      FASTDDS_BUILTIN_TRANSPORTS: UDPv4
+    # Listen on /b/output and publish on /a/input, so the bridge loops the two services together
+    command: b a --ros-args -r /b/input:=/b/output -r /a/output:=/a/input
