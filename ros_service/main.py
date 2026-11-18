@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
-"""Increment the message received on <input_prefix>/input and publish it on <output_prefix>/output.
-
-Every number in it goes up by 1 and wraps around at the end of its range, so a byte at 255 becomes 0.
-An empty string becomes "potato" and "potato" becomes "chips".
-Each reply goes out 500 ms after its input, so two services feeding each other don't spin.
-When nothing arrives on the input for 5 seconds, publish zeros and an empty string instead.
-This is service/main.py over ROS 2 topics, with ros_zenoh_msgs/msg/Message messages.
-"""
+"""Increment the message received on <input_prefix>/input and publish it on <output_prefix>/output."""
 
 import argparse
 import ctypes
