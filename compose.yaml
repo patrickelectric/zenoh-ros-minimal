@@ -16,9 +16,30 @@ services:
 
   ros_service:
     build: ros_service
+    profiles: [ros_service]
     network_mode: host
     environment:
       # Fast DDS shared memory reaches neither other containers nor the bridge's CycloneDDS
       FASTDDS_BUILTIN_TRANSPORTS: UDPv4
     # Listen on /b/output and publish on /a/input, so the bridge loops the two services together
     command: b a --ros-args -r /b/input:=/b/output -r /a/output:=/a/input
+
+  ros_topic:
+    build: ros_service
+    profiles: [ros_topic]
+    # bash would ignore Ctrl-C as PID 1 too
+    init: true
+    network_mode: host
+    environment:
+      FASTDDS_BUILTIN_TRANSPORTS: UDPv4
+      # ros2 topic never flushes, so without a terminal its output would sit in a buffer
+      PYTHONUNBUFFERED: 1
+    entrypoint:
+      - bash
+      - -c
+      - |
+        source install/setup.bash
+        ros2 topic echo /b/output ros_zenoh_msgs/msg/Message &
+        ros2 topic pub /a/input ros_zenoh_msgs/msg/Message &
+        # The daemon listens on localhost, which host networking shares with any ROS install on the host
+        while true; do ros2 topic list --no-daemon; sleep 5; done
