@@ -43,6 +43,7 @@ def main(input_prefix: str, output_prefix: str) -> None:
             try:
                 sample = samples.get(timeout=TIMEOUT)
                 message = Message.deserialize(sample.payload.to_bytes())
+                logger.info(f"Received {message.counter}")
                 payload = Message(message.counter + 1).serialize()
             except queue.Empty:
                 payload = Message(0).serialize()
@@ -57,4 +58,5 @@ if __name__ == "__main__":
     parser.add_argument("input_prefix", help="prefix of the input key, like service1")
     parser.add_argument("output_prefix", help="prefix of the output key, like service2")
     args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO)
     main(args.input_prefix, args.output_prefix)
